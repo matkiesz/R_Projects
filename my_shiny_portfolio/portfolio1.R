@@ -17,8 +17,13 @@ library(readtext)
 library(tm)
 library(SnowballC)
 library(RColorBrewer)
+library(rsconnect)
+library(rtweet)
+library(httpuv)
 
-
+rsconnect::setAccountInfo(name='mateuszkieszkowski',
+                          token='BCD3F1D6DBA88C5D1553BCC2AB96DEB9',
+                          secret='g/Z43nuYx0r2q2g+PAzNwACcE376ikFd133CjGXa')
 
 link <- "https://docs.google.com/spreadsheets/d/1P9PG5mcbaIeuO9v_VE5pv6U4T2zyiRiFK_r8jVksTyk/htmlembed?single=true&gid=0&range=a10:o400&widget=false&chrome=false"
 xData <- getURL(link) # pobieramy dane
@@ -70,17 +75,18 @@ ui <- dashboardPage(
   dashboardSidebar(
     sidebarMenu(id = "tab",
                 menuItem("Elect poll analysis",icon = icon("align-left"),
-                         menuSubItem("#61,Summary table",tabName = "electpoll"),
-                         menuSubItem("#62,Choose customer survey",tabName =  "electpoll1"),
-                         menuSubItem("#63.,Party Plot",tabName = "wykresypartii"),
-                         menuSubItem("#55,Geom_tile_chart", tabName = "electpoll2"),
-                         menuSubItem("#56, Parties Support", tabName = "partieschart")),
+                         menuSubItem("Summary table",tabName = "electpoll"),
+                         menuSubItem("Choose customer survey",tabName =  "electpoll1"),
+                         menuSubItem("Party Plot",tabName = "wykresypartii"),
+                         menuSubItem("Geom_tile_chart", tabName = "electpoll2"),
+                         menuSubItem("Parties Support", tabName = "partieschart")),
                 
                 menuItem("Text Mining", tabName = "electpoll",icon = icon("font"),
-                         menuSubItem("#64,Top 50 words", tabName = "top50"),
-                         menuSubItem("#65Bar frequencies", tabName = "freqbar"),
-                         menuSubItem("#66Table Frequencies", tabName ="tabbar"),
-                         menuSubItem("#67,Associations", tabName = "assocs"))
+                         menuSubItem("Top 50 words", tabName = "top50"),
+                         menuSubItem("Bar frequencies", tabName = "freqbar"),
+                         menuSubItem("Table Frequencies", tabName ="tabbar"),
+                         menuSubItem("Associations", tabName = "assocs")),
+                menuItem("Twitter Sentiment Analysis", tabName = "twittsent", icon = icon("twitter-square"))
                 
     )),
   
@@ -106,13 +112,22 @@ ui <- dashboardPage(
       tabItem(tabName = "assocs", label = "Assotiations between words", 
               textInput("textassocs", label = "Select your word to associate"),
               numericInput("corlimit1", label = "Select your corr limit", value = 0.01, step = 0.01, max = 1),
-                verbatimTextOutput("tabassocs"))
+                verbatimTextOutput("tabassocs")),
+      tabItem(tabName = "tweetsent")
     )
   ))
 
 
 
 server <- function(input, output){
+  
+  appname <- "Sentiment analysis matkie"
+  key <-"l4RR2R5dcnARo8XsQTuXcLeCw"
+  secret <- "MHRBJwjOlG2BMCFyM8FHkuUKOSn5otSFVIAhn7dOtwAfmLzfvI"
+  twitter_token <- create_token(
+    app = appname,
+    consumer_key = key,
+    consumer_secret = secret)
   
   
   output$vy <- renderUI({ # pierwszy element wybierany z listy
@@ -187,10 +202,13 @@ server <- function(input, output){
     
      })
   output$wordtable <-renderTable({
+    wordfunction()
     filter(d, freq >= input$freq1)
      })
   
   output$tabassocs <-renderPrint({
+    wordfunction()
+    dtm <- TermDocumentMatrix(docs)
     findAssocs(dtm, terms = input$textassocs, corlimit = input$corlimit1)
      })
 }

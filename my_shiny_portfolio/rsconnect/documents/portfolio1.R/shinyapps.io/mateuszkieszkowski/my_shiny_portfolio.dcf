@@ -1,0 +1,12 @@
+name: my_shiny_portfolio
+title: my_shiny_portfolio
+username:
+account: mateuszkieszkowski
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 319098
+bundleId: 1313076
+url: https://mateuszkieszkowski.shinyapps.io/my_shiny_portfolio/
+when: 1523428107.89051
+asMultiple: FALSE
+asStatic: FALSE
